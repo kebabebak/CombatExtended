@@ -549,6 +549,14 @@ public class Building_TurretGunCE : Building_Turret
 
     public virtual void BeginBurst()                     // Added handling for ticksUntilAutoReload
     {
+        // Warmup reaches this call without reading holdFire, and MannedNow stays true for one tick after ManTurret ends.
+        // Releasing that shell empties a one-round magazine and sends the crew to reload.
+        bool crewLeft = mannableComp != null && mannableComp.MannedNow && mannableComp.ManningPawn?.CurJobDef != JobDefOf.ManTurret;
+        if ((holdFire && CanToggleHoldFire) || crewLeft)
+        {
+            ResetCurrentTarget();
+            return;
+        }
         ticksUntilAutoReload = Controller.settings.SecondsAfterFightToOpportunisticReload * GenTicks.TicksPerRealSecond;
         if (AttackVerb is Verb_ShootMortarCE shootMortar)
         {
